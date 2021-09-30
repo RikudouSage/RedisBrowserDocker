@@ -1,0 +1,21 @@
+name: Publish Latest
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_ACCESS_KEY: ${{ secrets.DOCKER_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Docker Login
+        run: echo $DOCKER_ACCESS_KEY | docker login --username rikudousage --password-stdin
+      - name: Build
+        run: docker build -t rikudousage/redis-browser:latest .
+      - name: Push
+        run: docker push rikudousage/redis-browser:latest
