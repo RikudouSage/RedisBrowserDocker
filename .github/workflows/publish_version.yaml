@@ -1,0 +1,32 @@
+name: Publish Version
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish:
+    name: Publish Version
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_ACCESS_KEY: ${{ secrets.DOCKER_ACCESS_KEY }}
+    steps:
+      - name: Extract Version
+        id: extract_name
+        uses: actions/github-script@v4
+        with:
+          result-encoding: string
+          script: |
+            return context.payload.ref.replace(/refs\/tags\/v/, '');
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Docker Login
+        run: echo $DOCKER_ACCESS_KEY | docker login --username rikudousage --password-stdin
+      - name: Build
+        env:
+          VERSION: ${{ steps.extract_name.outputs.result }}
+        run: docker build -t rikudousage/redis-browser:$VERSION .
+      - name: Push
+        env:
+          VERSION: ${{ steps.extract_name.outputs.result }}
+        run: docker push rikudousage/redis-browser:$VERSION
